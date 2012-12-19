@@ -1,12 +1,9 @@
 create user postgres encrypted password '@DBPASSWORD@';
 alter role postgres with superuser;
 create user ledgersmb encrypted password '@DBPASSWORD@';
-alter role ledgersmb with createdb;
+alter role ledgersmb with superuser;
 create database ledgersmb owner ledgersmb;
-create database lsmb13 owner ledgersmb;
 \c ledgersmb
-create language 'plpgsql' HANDLER plpgsql_call_handler LANCOMPILER 'PL/pgSQL';
-\c lsmb13
 create language 'plpgsql' HANDLER plpgsql_call_handler LANCOMPILER 'PL/pgSQL';
 \c template1
 create language 'plpgsql' HANDLER plpgsql_call_handler LANCOMPILER 'PL/pgSQL';

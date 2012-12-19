@@ -16,7 +16,7 @@ TCPIP=-h ''
 DBPASSWORD=baesheDaic5OhGh2
 DBPATH=${TOP}/run
 DBCLUSTER=${DBPATH}/dbcluster
-DATABASE=${APPNAME}_development
+DATABASE=ledgersmb
 
 APACHE2_MODDIR=$(shell if [ -d /usr/lib/apache2/modules ]; then echo /usr/lib/apache2/modules; else echo WHERE IS APACHE; fi; )
 APACHE2_CONFDIR=${TOP}
