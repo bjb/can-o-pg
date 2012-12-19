@@ -2,9 +2,9 @@
 # ITERation project:  http://tbs-sct.ircan.gc.ca/projects/iteration
 #
 
-APPNAME:=$(shell basename $$(pwd))
+APPNAME:=ledgersmb
 TOP=$(shell pwd)
-SCRIPTDIR=vendor/plugins/can-o-pg
+SCRIPTDIR=.
 POSTBIN?=$(shell ${SCRIPTDIR}/findpgsql.sh )
 PSQL=${POSTBIN}/psql
 PG_DUMP=${POSTBIN}/pg_dump
@@ -19,6 +19,7 @@ DBCLUSTER=${DBPATH}/dbcluster
 DATABASE=${APPNAME}_development
 
 APACHE2_MODDIR=$(shell if [ -d /usr/lib/apache2/modules ]; then echo /usr/lib/apache2/modules; else echo WHERE IS APACHE; fi; )
+APACHE2_CONFDIR=${TOP}
 WEBSERVER=$(shell if [ -x /usr/sbin/httpd2 ]; then echo  /usr/sbin/httpd2; elif [ -x /usr/sbin/apache2 ]; then echo /usr/sbin/apache2; fi)
 PHP5_MODDIR=${APACHE2_MODDIR}
 SYSTEMPORT=$(shell ${SCRIPTDIR}/portnum.sh )
@@ -42,12 +43,9 @@ export LANG=C
 export LC_TIME=C
 export DATABASE
 
-all:: ${DBPATH}/postmaster.pid ${SCRIPTDIR}/database.yml
+all:: ${DBPATH}/postmaster.pid
 
 -include can-o-pg.settings
-
-install: 
-	ln -f -s vendor/plugins/can-o-pg/Makefile .
 
 run/dirs:
 	mkdir -p run run/lock run/log run/log/apache2
@@ -77,7 +75,7 @@ load:
 
 dump:
 	echo DUMPING to database $${OUTFILE-db/output.sql}
-	${PG_DUMP} --data-only --column-inserts -h ${TOP}/run ${TABLE} ${DATABASE} >$${OUTFILE-db/output.sql} 
+	${PG_DUMP} --data-only --column-inserts -h ${TOP}/run ${TABLE} ${DATABASE} >$${OUTFILE-db/output.sql}
 
 #run/dbinit: #sql/schema.sql db_dump/restore.sql
 #	make dbrebuild
@@ -105,29 +103,19 @@ ${SCRIPTDIR}/bootstrap.sql: ${SCRIPTDIR}/bootstrap.sql.in Makefile
 		-e 's,@DBPASSWORD@,${DBPASSWORD},g' \
 		${SCRIPTDIR}/bootstrap.sql.in >${SCRIPTDIR}/bootstrap.sql
 
-${SCRIPTDIR}/database.yml: ${SCRIPTDIR}/database.yml.in Makefile
-	sed \
-		-e 's,@APP@,${APPNAME},g' \
-		-e 's,@APPNAME@,${APPNAME},g' \
-		-e 's,@DBPATH@,${DBPATH},g' \
-		-e 's,@DBPASSWORD@,${DBPASSWORD},g' \
-		${SCRIPTDIR}/database.yml.in >${SCRIPTDIR}/database.yml
-	@echo You can enable by: cp ${SCRIPTDIR}/database.yml config/database.yml
-
 clean:
-	@rm -f ${SCRIPTDIR}/database.yml ${SCRIPTDIR}/bootstrap.sql
+	@rm -f ${SCRIPTDIR}/bootstrap.sql
 	@rm -f ${SCRIPTDIR}/apache2.conf ${SCRIPTDIR}/runweb.sh ${SCRIPTDIR}/php.ini ${SCRIPTDIR}/php/conf/config.inc.php
-	@rm -f ${SCRIPTDIR}/shutit.sh  
+	@rm -f ${SCRIPTDIR}/shutit.sh
 
-apache: ${SCRIPTDIR}/apache2.conf ${SCRIPTDIR}/runweb.sh ${SCRIPTDIR}/php.ini ${SCRIPTDIR}/php/conf/config.inc.php public
+${TOP}/public:
+	mkdir ${TOP}/public
+
+apache: ${APACHE2_CONFDIR}/httpd.conf ${APACHE2_CONFDIR}/apache2.conf ${SCRIPTDIR}/runweb.sh ${SCRIPTDIR}/php.ini ${SCRIPTDIR}/php/conf/config.inc.php ${TOP}/public
 	${SCRIPTDIR}/runweb.sh
 
-apachestop: ${SCRIPTDIR}/shutit.sh  
+apachestop: ${SCRIPTDIR}/shutit.sh
 	${SCRIPTDIR}/shutit.sh
-
-server: ${DBPATH}/postmaster.pid
-	cp ${SCRIPTDIR}/database.yml config/database.yml
-	script/rails server
 
 dbpath:
 	@echo ${DBPATH}
@@ -158,7 +146,7 @@ showconfig:
 	@echo DATABASE=${DATABASE}
 	@echo DBCLUSTER=${DBCLUSTER}
 
-httpd.conf:
+${APACHE2_CONFDIR}/httpd.conf:
         # just make sure it exists.
-	touch httpd.conf
+	touch ${APACHE2_CONFDIR}/httpd.conf
 

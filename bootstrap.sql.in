@@ -1,7 +1,12 @@
-create database @APPNAME@_development;
-create database @APPNAME@_test;
-create user @APPNAME@_development encrypted password '@DBPASSWORD@';
 create user postgres encrypted password '@DBPASSWORD@';
-alter role @APPNAME@_development with createdb;
-alter database @APPNAME@_test OWNER TO @APPNAME@_development;
-
+alter role postgres with superuser;
+create user ledgersmb encrypted password '@DBPASSWORD@';
+alter role ledgersmb with createdb;
+create database ledgersmb owner ledgersmb;
+create database lsmb13 owner ledgersmb;
+\c ledgersmb
+create language 'plpgsql' HANDLER plpgsql_call_handler LANCOMPILER 'PL/pgSQL';
+\c lsmb13
+create language 'plpgsql' HANDLER plpgsql_call_handler LANCOMPILER 'PL/pgSQL';
+\c template1
+create language 'plpgsql' HANDLER plpgsql_call_handler LANCOMPILER 'PL/pgSQL';
