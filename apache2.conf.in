@@ -428,6 +428,7 @@ NameVirtualHost *
 	CustomLog run/log/apache2/access.log combined
 	ServerSignature On
 
+        Include /etc/ledgersmb/ledgersmb-httpd.conf
         Include @TOPDIR@/httpd.conf
 
 </VirtualHost>
